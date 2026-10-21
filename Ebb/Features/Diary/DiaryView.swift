@@ -137,7 +137,7 @@ struct DiaryRow: View {
                     .foregroundStyle(Theme.text(scheme))
                     .lineLimit(2)
                 HStack(spacing: 6) {
-                    Text(entry.createdAt.formatted(date: .omitted, time: .shortened))
+                    Text(entry.createdAt.ebbTime)
                     if let t = entry.trigger { Text("· \(t)") }
                     if let c = entry.coping, entry.thought != nil { Text("· \(c.displayName)") }
                     if entry.isOpen { Text("· открыта") }

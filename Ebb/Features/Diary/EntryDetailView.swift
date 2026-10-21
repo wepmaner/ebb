@@ -17,7 +17,7 @@ struct EntryDetailView: View {
             Theme.background(scheme)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(entry.createdAt.formatted(.dateTime.day().month(.wide).hour().minute().locale(Locale(identifier: "ru_RU"))))
+                    Text(entry.createdAt.ebbDateTime)
                         .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(Theme.text(scheme))
                         .padding(.top, 4)

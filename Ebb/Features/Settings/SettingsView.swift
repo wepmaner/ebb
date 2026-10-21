@@ -38,7 +38,7 @@ struct SettingsView: View {
                 Section {
                     if let folder = backup.folderURL {
                         LabeledContent("Папка", value: folder.lastPathComponent)
-                        LabeledContent("Последняя копия", value: backup.lastBackupAt?.formatted(date: .abbreviated, time: .shortened) ?? "ещё не было")
+                        LabeledContent("Последняя копия", value: backup.lastBackupAt?.ebbDateTime ?? "ещё не было")
                         if let err = backup.lastError {
                             Text(err).font(.footnote).foregroundStyle(.red)
                         }

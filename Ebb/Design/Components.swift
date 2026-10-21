@@ -193,6 +193,16 @@ extension Date {
         formatted(.dateTime.day().month(.wide).locale(Locale(identifier: "ru_RU")))
     }
 
+    /// «14:17», всегда 24-часовой формат.
+    var ebbTime: String {
+        formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute().locale(Locale(identifier: "ru_RU")))
+    }
+
+    /// «21 октября, 14:17».
+    var ebbDateTime: String {
+        "\(ebbShortDate), \(ebbTime)"
+    }
+
     /// «40 мин назад», «2 ч назад».
     func ebbRelative(to now: Date = Date()) -> String {
         let minutes = Int(now.timeIntervalSince(self) / 60)

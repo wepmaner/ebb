@@ -99,7 +99,7 @@ final class ScreenshotTests: XCTestCase {
 
     func testOnboardingDark() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--demo-data", "--ui-style", "dark", "--onboarding"]
+        app.launchArguments = ["--demo-data", "--ui-style", "dark", "--onboarding", "-AppleLanguages", "(ru)", "-AppleLocale", "ru_RU"]
         app.launch()
         XCTAssertTrue(app.buttons["onboarding.fresh"].waitForExistence(timeout: 15))
         settle()
@@ -117,7 +117,7 @@ final class ScreenshotTests: XCTestCase {
 
     func launch(style: String) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--demo-data", "--ui-style", style]
+        app.launchArguments = ["--demo-data", "--ui-style", style, "-AppleLanguages", "(ru)", "-AppleLocale", "ru_RU"]
         app.launch()
         return app
     }

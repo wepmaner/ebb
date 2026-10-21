@@ -37,7 +37,7 @@ struct SuggestStepView: View {
                     }
 
                     VStack(spacing: 12) {
-                        if model.recommendation?.offerDefer == true || model.displayedPrimary != .practice(.deferThought) {
+                        if model.recommendation?.offerDefer == true, model.displayedPrimary != .practice(.deferThought) {
                             RowButton(systemName: "clock", title: "Отложить до \(store.settings.worryTimeHour):00", detail: "время для тревоги", tint: Color(hex: 0xE3C488)) {
                                 model.deferThought()
                             }

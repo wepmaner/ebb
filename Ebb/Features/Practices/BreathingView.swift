@@ -37,7 +37,6 @@ struct BreathingView: View {
                 onDone(session.stop())
             }
         }
-        .accessibilityIdentifier("breathing")
     }
 
     // MARK: - Части
