@@ -195,7 +195,7 @@ extension Date {
 
     /// «14:17», всегда 24-часовой формат.
     var ebbTime: String {
-        formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute().locale(Locale(identifier: "ru_RU")))
+        formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).locale(Locale(identifier: "ru_RU")))
     }
 
     /// «21 октября, 14:17».
