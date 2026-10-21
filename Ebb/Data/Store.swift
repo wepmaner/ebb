@@ -41,7 +41,9 @@ final class Store {
     }
 
     static func persistent() throws -> Store {
-        let config = ModelConfiguration("Ebb", schema: schema)
+        // SwiftData не создаёт Application Support сама; на свежем контейнере её нет.
+        let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let config = ModelConfiguration("Ebb", schema: schema, url: support.appending(path: "Ebb.store"))
         return Store(container: try ModelContainer(for: schema, configurations: config))
     }
 
