@@ -19,6 +19,8 @@ final class ScreenshotTests: XCTestCase {
 
     private func captureAll(style: String) throws {
         let app = launch(style: style)
+
+        // Вкладки
         for (label, name) in Self.tabs {
             let tab = app.tabBars.buttons[label]
             XCTAssertTrue(tab.waitForExistence(timeout: 15), "вкладка \(label) не найдена")
@@ -26,6 +28,50 @@ final class ScreenshotTests: XCTestCase {
             settle()
             snap(app, "\(name)-\(style)")
         }
+
+        // Цикл записи: шаг 1 → 2 → дыхание → 4
+        app.tabBars.buttons["Сейчас"].tap()
+        settle()
+        let record = app.buttons["now.record"]
+        XCTAssertTrue(record.waitForExistence(timeout: 10))
+        record.tap()
+        settle()
+        snap(app, "record-step1-\(style)")
+        app.buttons["record.next"].tap()
+        settle()
+        snap(app, "record-step2-\(style)")
+        app.buttons["record.start"].tap()
+        settle(2.5)
+        snap(app, "breathing-\(style)")
+        app.buttons["breathing.finish"].tap()
+        settle()
+        snap(app, "record-step4-\(style)")
+        app.buttons["record.done"].tap()
+        settle()
+
+        // Открытая запись → шаг 4 с продолжением
+        if let resume = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'now.openEntry.'")).allElementsBoundByIndex.first {
+            resume.tap()
+            settle()
+            snap(app, "record-resume-\(style)")
+            app.buttons["record.done"].tap()
+            settle()
+        }
+
+        // Оглядка: ответ на первый вопрос
+        let didNotHappen = app.buttons["Не случилось"].firstMatch
+        if didNotHappen.waitForExistence(timeout: 3) {
+            didNotHappen.tap()
+            settle()
+            snap(app, "now-fearcheck-answered-\(style)")
+        }
+
+        // Практики → дыхание: экран настройки
+        app.tabBars.buttons["Практики"].tap()
+        settle()
+        app.buttons["practice.breathing"].tap()
+        settle()
+        snap(app, "practices-breathing-setup-\(style)")
     }
 
     static let tabs: [(label: String, name: String)] = [
@@ -41,8 +87,8 @@ final class ScreenshotTests: XCTestCase {
         return app
     }
 
-    func settle() {
-        RunLoop.current.run(until: Date().addingTimeInterval(1.2))
+    func settle(_ seconds: TimeInterval = 1.2) {
+        RunLoop.current.run(until: Date().addingTimeInterval(seconds))
     }
 
     func snap(_ app: XCUIApplication, _ name: String) {
