@@ -67,13 +67,13 @@ private var utc: Calendar {
 @Test func triggersCountAndAverage() {
     let now = Date()
     let es = [
-        Entry(createdAt: now, levelBefore: .init(clamping: 8), trigger: "общение"),
-        Entry(createdAt: now, levelBefore: .init(clamping: 6), trigger: "общение"),
-        Entry(createdAt: now, levelBefore: .init(clamping: 3), trigger: "работа"),
+        Entry(createdAt: now, levelBefore: .init(clamping: 8), trigger: "работа"),
+        Entry(createdAt: now, levelBefore: .init(clamping: 6), trigger: "работа"),
+        Entry(createdAt: now, levelBefore: .init(clamping: 3), trigger: "учёба"),
         Entry(createdAt: now, levelBefore: .init(clamping: 3)),
     ]
     let t = Stats.triggers(es, period: .all, now: now)
-    #expect(t.map(\.trigger) == ["общение", "работа"])
+    #expect(t.map(\.trigger) == ["работа", "учёба"])
     #expect(t[0].count == 2)
     #expect(t[0].averageBefore == 7)
 }

@@ -15,15 +15,15 @@ enum DemoData {
     }
 
     private static let thoughts = [
-        "Не успею сдать отчёт к пятнице", "Не успею сдать работу вовремя", "Что-то не так с сердцем",
-        "Денег не хватит до конца месяца", "Хватит ли денег до конца месяца", "Что скажут на завтрашней встрече",
+        "Не успею сдать отчёт к пятнице", "Что скажут на завтрашней встрече", "Опять болит голова, вдруг это серьёзное",
+        "Хватит ли денег до конца месяца", "Экзамен через неделю, а я ничего не помню", "Забыл ли я выключить плиту",
         "Вдруг опоздаю на рейс", "Кажется, я всё делаю медленнее других",
     ]
     private static let fears = [
-        "провалю презентацию", "меня уволят", "это что-то серьёзное", "не хватит на аренду",
-        "завалю экзамен", "провалю всё на встрече",
+        "провалю презентацию", "меня снимут с проекта", "это что-то серьёзное", "не хватит на аренду",
+        "завалю экзамен", "опоздаю и всё сорвётся",
     ]
-    private static let triggers = ["общение", "работа", "здоровье", "деньги", "отношения", "не знаю"]
+    private static let triggers = ["общение", "работа", "здоровье", "деньги", "учёба", "не знаю"]
 
     @MainActor
     static func seed(into store: Store, now: Date) {
@@ -65,7 +65,7 @@ enum DemoData {
                 if case .practice(let kind) = coping {
                     let details: PracticeDetails = kind == .breathing
                         ? .breathing(pattern: .calm46, plannedSeconds: 180, actualSeconds: 180)
-                        : .thoughtCheck(thought: thought ?? "", beliefBefore: 80, evidenceFor: "Сроки правда сжатые", evidenceAgainst: "Прошлые три отчёта сдал вовремя", toFriend: "Начни с плана", beliefAfter: 40)
+                        : .thoughtCheck(thought: thought ?? "", beliefBefore: 80, evidenceFor: "Сроки правда сжатые", evidenceAgainst: "Прошлые три отчёта сдал вовремя", toFriend: "Ты успевал и в худших условиях, начни с плана", beliefAfter: 40)
                     store.add(PracticeSession(entryID: entry.id, kind: kind, startedAt: createdAt.addingTimeInterval(60), endedAt: createdAt.addingTimeInterval(240), details: details))
                 }
 
@@ -95,17 +95,17 @@ enum DemoData {
         }
 
         // Открытая запись: своё действие сорок минут назад, замера «после» ещё нет.
-        store.upsert(Entry(createdAt: now.addingTimeInterval(-40 * 60), levelBefore: .init(clamping: 7), thought: "Не успею сдать отчёт к пятнице", trigger: "общение", fear: "провалю презентацию", coping: .ownAction("гулял")))
+        store.upsert(Entry(createdAt: now.addingTimeInterval(-40 * 60), levelBefore: .init(clamping: 7), thought: "Не успею сдать отчёт к пятнице", trigger: "работа", fear: "провалю презентацию", coping: .ownAction("гулял")))
         store.touchOwnAction("гулял", at: now)
         store.touchOwnAction("звонил другу", at: now.addingTimeInterval(-5 * 86400))
 
         // Вопрос оглядки, срок которого наступил сегодня.
-        let dueEntry = Entry(createdAt: now.addingTimeInterval(-3 * 86400 - 1800), levelBefore: .init(clamping: 8), thought: "Что скажут на завтрашней встрече", trigger: "общение", fear: "провалю презентацию", coping: .practice(.breathing), levelAfter: .init(clamping: 4), afterAt: now.addingTimeInterval(-3 * 86400))
+        let dueEntry = Entry(createdAt: now.addingTimeInterval(-3 * 86400 - 1800), levelBefore: .init(clamping: 8), thought: "Что скажут на завтрашней встрече", trigger: "работа", fear: "провалю презентацию", coping: .practice(.breathing), levelAfter: .init(clamping: 4), afterAt: now.addingTimeInterval(-3 * 86400))
         store.upsert(dueEntry)
         store.replaceFearChecks(forEntry: dueEntry.id, with: FearCheckScheduler.checks(for: dueEntry))
 
-        store.upsert(LadderStep(title: "Задать вопрос на общей встрече", note: "Один короткий вопрос", order: 0, completions: [now.addingTimeInterval(-6 * 86400)]))
-        store.upsert(LadderStep(title: "Записаться к врачу", order: 1))
+        store.upsert(LadderStep(title: "Задать вопрос на общей встрече", note: "Один короткий вопрос, без подготовки речи", order: 0, completions: [now.addingTimeInterval(-6 * 86400)]))
+        store.upsert(LadderStep(title: "Записаться к врачу на осмотр", order: 1))
         store.upsert(LadderStep(title: "Выступить с коротким докладом", order: 2))
         store.add(DeferredThought(text: "А если отчёт не примут?", deferredAt: now.addingTimeInterval(-3 * 3600)))
     }

@@ -4,14 +4,14 @@ import Testing
 
 @Test func markdownContainsPromptAndSections() {
     var s = Snapshot.empty(at: Date())
-    s.entries = [Entry(levelBefore: .init(clamping: 7), thought: "мысль", trigger: "общение", fear: "страх", coping: .practice(.breathing), levelAfter: .init(clamping: 3))]
+    s.entries = [Entry(levelBefore: .init(clamping: 7), thought: "мысль", trigger: "работа", fear: "страх", coping: .practice(.breathing), levelAfter: .init(clamping: 3))]
     let md = Exporter.markdown(s, period: .all, now: Date(), prompt: DefaultPrompt.text)
     #expect(md.hasPrefix(DefaultPrompt.text))
     for h in ["## Сводка", "## Записи", "## Практики", "## Оглядка", "## Привычки", "## Лестница"] {
         #expect(md.contains(h), "missing \(h)")
     }
     #expect(md.contains("7 → 3"))
-    #expect(md.contains("общение"))
+    #expect(md.contains("работа"))
     #expect(md.contains("«мысль»"))
     #expect(md.contains("страх"))
 }

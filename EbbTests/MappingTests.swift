@@ -4,7 +4,7 @@ import Testing
 @testable import Ebb
 
 @Test @MainActor func entryRoundTripThroughRecord() {
-    let e = Entry(levelBefore: .init(clamping: 7), thought: "t", trigger: "общение", fear: "f", coping: .ownAction("гулял"))
+    let e = Entry(levelBefore: .init(clamping: 7), thought: "t", trigger: "работа", fear: "f", coping: .ownAction("гулял"))
     #expect(EntryRecord(e).value == e)
     let closed = Entry(levelBefore: .init(clamping: 7), coping: .practice(.breathing), levelAfter: .init(clamping: 3), afterAt: Date(timeIntervalSince1970: 10), closedAt: nil)
     #expect(EntryRecord(closed).value == closed)
