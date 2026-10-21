@@ -63,17 +63,32 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.ebb.diary.tests
         GENERATE_INFOPLIST_FILE: YES
 
+  EbbUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: EbbUITests
+    dependencies:
+      - target: Ebb
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.ebb.diary.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Ebb
+
 schemes:
   Ebb:
     build:
       targets:
         Ebb: all
         EbbTests: [test]
+        EbbUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - EbbTests
+        - EbbUITests
     archive:
       config: Release

@@ -1,0 +1,76 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Screenshots and unsigned IPA
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        run: |
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1 || true)
+          if [ -n "$XC" ]; then sudo xcode-select -s "$XC"; fi
+          xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: UI tests with screenshots
+        run: |
+          set -o pipefail
+          DEST="id=$(scripts/pick-simulator.sh)"
+          xcodebuild test \
+            -scheme Ebb \
+            -destination "$DEST" \
+            -only-testing:EbbUITests \
+            -resultBundlePath build/ui.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
+            | tail -n 150
+      - name: Export screenshots
+        if: always()
+        run: scripts/export-screenshots.sh build/ui.xcresult build/screenshots
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: build/screenshots
+
+      - name: Build unsigned Release
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -scheme Ebb \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
+            | tail -n 80
+      - name: Package IPA
+        run: scripts/package-ipa.sh build/dd build/Ebb.ipa
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: build/Ebb.ipa
+
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" build/Ebb.ipa --generate-notes

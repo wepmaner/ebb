@@ -3,17 +3,21 @@ import Foundation
 
 // Record ↔ структура EbbCore. JSON-поля кодируются одним и тем же кодеком.
 
-private let jsonEncoder: JSONEncoder = {
-    let e = JSONEncoder()
-    e.dateEncodingStrategy = .iso8601
-    return e
-}()
+/// Кодеки создаются на каждый вызов: методы @Model-классов неизолированные, а
+/// JSONEncoder не Sendable, поэтому общий экземпляр под MainActor здесь нельзя.
+private enum JSON {
+    nonisolated static var encoder: JSONEncoder {
+        let e = JSONEncoder()
+        e.dateEncodingStrategy = .iso8601
+        return e
+    }
 
-private let jsonDecoder: JSONDecoder = {
-    let d = JSONDecoder()
-    d.dateDecodingStrategy = .iso8601
-    return d
-}()
+    nonisolated static var decoder: JSONDecoder {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
+    }
+}
 
 // MARK: - Entry
 
@@ -62,11 +66,11 @@ extension EntryRecord {
 
 extension PracticeSessionRecord {
     convenience init(_ s: PracticeSession) {
-        self.init(id: s.id, entryID: s.entryID, kind: s.kind.rawValue, startedAt: s.startedAt, endedAt: s.endedAt, detailsJSON: (try? jsonEncoder.encode(s.details)) ?? Data())
+        self.init(id: s.id, entryID: s.entryID, kind: s.kind.rawValue, startedAt: s.startedAt, endedAt: s.endedAt, detailsJSON: (try? JSON.encoder.encode(s.details)) ?? Data())
     }
 
     func value() throws -> PracticeSession {
-        PracticeSession(id: id, entryID: entryID, kind: PracticeKind(rawValue: kind) ?? .breathing, startedAt: startedAt, endedAt: endedAt, details: try jsonDecoder.decode(PracticeDetails.self, from: detailsJSON))
+        PracticeSession(id: id, entryID: entryID, kind: PracticeKind(rawValue: kind) ?? .breathing, startedAt: startedAt, endedAt: endedAt, details: try JSON.decoder.decode(PracticeDetails.self, from: detailsJSON))
     }
 }
 
@@ -94,7 +98,7 @@ extension FearCheckRecord {
 
 extension DailyHabitsRecord {
     convenience init(_ h: DailyHabits) {
-        self.init(day: h.day.raw, sleepHours: h.sleepHours, moved: h.moved, caffeineServings: h.caffeineServings, alcohol: h.alcohol, customJSON: (try? jsonEncoder.encode(h.custom)) ?? Data())
+        self.init(day: h.day.raw, sleepHours: h.sleepHours, moved: h.moved, caffeineServings: h.caffeineServings, alcohol: h.alcohol, customJSON: (try? JSON.encoder.encode(h.custom)) ?? Data())
     }
 
     func apply(_ h: DailyHabits) {
@@ -102,11 +106,11 @@ extension DailyHabitsRecord {
         moved = h.moved
         caffeineServings = h.caffeineServings
         alcohol = h.alcohol
-        customJSON = (try? jsonEncoder.encode(h.custom)) ?? Data()
+        customJSON = (try? JSON.encoder.encode(h.custom)) ?? Data()
     }
 
     func value() throws -> DailyHabits {
-        DailyHabits(day: DayKey(raw: day), sleepHours: sleepHours, moved: moved, caffeineServings: caffeineServings, alcohol: alcohol, custom: customJSON.isEmpty ? [:] : try jsonDecoder.decode([String: Bool].self, from: customJSON))
+        DailyHabits(day: DayKey(raw: day), sleepHours: sleepHours, moved: moved, caffeineServings: caffeineServings, alcohol: alcohol, custom: customJSON.isEmpty ? [:] : try JSON.decoder.decode([String: Bool].self, from: customJSON))
     }
 }
 
@@ -124,18 +128,18 @@ extension OwnActionRecord {
 
 extension LadderStepRecord {
     convenience init(_ s: LadderStep) {
-        self.init(id: s.id, title: s.title, note: s.note, order: s.order, completionsJSON: (try? jsonEncoder.encode(s.completions)) ?? Data())
+        self.init(id: s.id, title: s.title, note: s.note, order: s.order, completionsJSON: (try? JSON.encoder.encode(s.completions)) ?? Data())
     }
 
     func apply(_ s: LadderStep) {
         title = s.title
         note = s.note
         order = s.order
-        completionsJSON = (try? jsonEncoder.encode(s.completions)) ?? Data()
+        completionsJSON = (try? JSON.encoder.encode(s.completions)) ?? Data()
     }
 
     func value() throws -> LadderStep {
-        LadderStep(id: id, title: title, note: note, order: order, completions: completionsJSON.isEmpty ? [] : try jsonDecoder.decode([Date].self, from: completionsJSON))
+        LadderStep(id: id, title: title, note: note, order: order, completions: completionsJSON.isEmpty ? [] : try JSON.decoder.decode([Date].self, from: completionsJSON))
     }
 }
 
@@ -163,14 +167,14 @@ extension DeferredThoughtRecord {
 
 extension SettingsRecord {
     convenience init(_ s: UserSettings) {
-        self.init(json: (try? jsonEncoder.encode(s)) ?? Data())
+        self.init(json: (try? JSON.encoder.encode(s)) ?? Data())
     }
 
     func apply(_ s: UserSettings) {
-        json = (try? jsonEncoder.encode(s)) ?? Data()
+        json = (try? JSON.encoder.encode(s)) ?? Data()
     }
 
     func value() throws -> UserSettings {
-        try jsonDecoder.decode(UserSettings.self, from: json)
+        try JSON.decoder.decode(UserSettings.self, from: json)
     }
 }
