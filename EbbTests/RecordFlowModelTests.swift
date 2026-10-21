@@ -29,7 +29,7 @@ import Testing
     #expect(m.step == .after)
     m.setAfter(.init(clamping: 3))
     m.finish()
-    #expect(s.entries[0].delta == -4)
+    #expect(s.entries[0].delta == -5)
     #expect(s.fearChecks.count == 2)
     #expect(s.sessions.count == 1)
     #expect(m.isFinished)

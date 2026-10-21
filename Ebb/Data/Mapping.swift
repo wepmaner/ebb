@@ -3,20 +3,19 @@ import Foundation
 
 // Record ↔ структура EbbCore. JSON-поля кодируются одним и тем же кодеком.
 
-/// Кодеки создаются на каждый вызов: методы @Model-классов неизолированные, а
-/// JSONEncoder не Sendable, поэтому общий экземпляр под MainActor здесь нельзя.
+/// Кодеки создаются на каждый вызов: методы @Model-классов неизолированные.
+/// Даты в базе округляются до миллисекунды, чтобы резервная копия восстанавливалась один в один.
 private enum JSON {
-    nonisolated static var encoder: JSONEncoder {
-        let e = JSONEncoder()
-        e.dateEncodingStrategy = .iso8601
-        return e
-    }
+    nonisolated static var encoder: JSONEncoder { EbbDates.encoder() }
+    nonisolated static var decoder: JSONDecoder { EbbDates.decoder() }
+}
 
-    nonisolated static var decoder: JSONDecoder {
-        let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
-        return d
-    }
+private extension Date {
+    nonisolated var ms: Date { EbbDates.rounded(self) }
+}
+
+private extension Optional where Wrapped == Date {
+    nonisolated var ms: Date? { map(EbbDates.rounded) }
 }
 
 // MARK: - Entry
@@ -24,19 +23,19 @@ private enum JSON {
 extension EntryRecord {
     convenience init(_ e: Entry) {
         let (kind, value) = EntryRecord.encode(e.coping)
-        self.init(id: e.id, createdAt: e.createdAt, levelBefore: e.levelBefore.value, thought: e.thought, trigger: e.trigger, fear: e.fear, copingKind: kind, copingValue: value, levelAfter: e.levelAfter?.value, afterAt: e.afterAt, closedAt: e.closedAt)
+        self.init(id: e.id, createdAt: e.createdAt.ms, levelBefore: e.levelBefore.value, thought: e.thought, trigger: e.trigger, fear: e.fear, copingKind: kind, copingValue: value, levelAfter: e.levelAfter?.value, afterAt: e.afterAt.ms, closedAt: e.closedAt.ms)
     }
 
     func apply(_ e: Entry) {
-        createdAt = e.createdAt
+        createdAt = e.createdAt.ms
         levelBefore = e.levelBefore.value
         thought = e.thought
         trigger = e.trigger
         fear = e.fear
         (copingKind, copingValue) = EntryRecord.encode(e.coping)
         levelAfter = e.levelAfter?.value
-        afterAt = e.afterAt
-        closedAt = e.closedAt
+        afterAt = e.afterAt.ms
+        closedAt = e.closedAt.ms
     }
 
     var value: Entry {
@@ -66,7 +65,7 @@ extension EntryRecord {
 
 extension PracticeSessionRecord {
     convenience init(_ s: PracticeSession) {
-        self.init(id: s.id, entryID: s.entryID, kind: s.kind.rawValue, startedAt: s.startedAt, endedAt: s.endedAt, detailsJSON: (try? JSON.encoder.encode(s.details)) ?? Data())
+        self.init(id: s.id, entryID: s.entryID, kind: s.kind.rawValue, startedAt: s.startedAt.ms, endedAt: s.endedAt.ms, detailsJSON: (try? JSON.encoder.encode(s.details)) ?? Data())
     }
 
     func value() throws -> PracticeSession {
@@ -78,14 +77,14 @@ extension PracticeSessionRecord {
 
 extension FearCheckRecord {
     convenience init(_ c: FearCheck) {
-        self.init(id: c.id, entryID: c.entryID, stage: c.stage.rawValue, dueAt: c.dueAt, answeredAt: c.answeredAt, outcome: c.outcome?.rawValue)
+        self.init(id: c.id, entryID: c.entryID, stage: c.stage.rawValue, dueAt: c.dueAt.ms, answeredAt: c.answeredAt.ms, outcome: c.outcome?.rawValue)
     }
 
     func apply(_ c: FearCheck) {
         entryID = c.entryID
         stage = c.stage.rawValue
-        dueAt = c.dueAt
-        answeredAt = c.answeredAt
+        dueAt = c.dueAt.ms
+        answeredAt = c.answeredAt.ms
         outcome = c.outcome?.rawValue
     }
 
@@ -118,7 +117,7 @@ extension DailyHabitsRecord {
 
 extension OwnActionRecord {
     convenience init(_ a: OwnAction) {
-        self.init(name: a.name, useCount: a.useCount, lastUsedAt: a.lastUsedAt)
+        self.init(name: a.name, useCount: a.useCount, lastUsedAt: a.lastUsedAt.ms)
     }
 
     var value: OwnAction { OwnAction(name: name, useCount: useCount, lastUsedAt: lastUsedAt) }
@@ -128,14 +127,14 @@ extension OwnActionRecord {
 
 extension LadderStepRecord {
     convenience init(_ s: LadderStep) {
-        self.init(id: s.id, title: s.title, note: s.note, order: s.order, completionsJSON: (try? JSON.encoder.encode(s.completions)) ?? Data())
+        self.init(id: s.id, title: s.title, note: s.note, order: s.order, completionsJSON: (try? JSON.encoder.encode(s.completions.map(EbbDates.rounded))) ?? Data())
     }
 
     func apply(_ s: LadderStep) {
         title = s.title
         note = s.note
         order = s.order
-        completionsJSON = (try? JSON.encoder.encode(s.completions)) ?? Data()
+        completionsJSON = (try? JSON.encoder.encode(s.completions.map(EbbDates.rounded))) ?? Data()
     }
 
     func value() throws -> LadderStep {
@@ -147,14 +146,14 @@ extension LadderStepRecord {
 
 extension DeferredThoughtRecord {
     convenience init(_ d: DeferredThought) {
-        self.init(id: d.id, entryID: d.entryID, text: d.text, deferredAt: d.deferredAt, resolvedAt: d.resolvedAt, resolution: d.resolution?.rawValue)
+        self.init(id: d.id, entryID: d.entryID, text: d.text, deferredAt: d.deferredAt.ms, resolvedAt: d.resolvedAt.ms, resolution: d.resolution?.rawValue)
     }
 
     func apply(_ d: DeferredThought) {
         entryID = d.entryID
         text = d.text
-        deferredAt = d.deferredAt
-        resolvedAt = d.resolvedAt
+        deferredAt = d.deferredAt.ms
+        resolvedAt = d.resolvedAt.ms
         resolution = d.resolution?.rawValue
     }
 

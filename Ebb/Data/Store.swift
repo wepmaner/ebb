@@ -125,9 +125,9 @@ final class Store {
         guard !trimmed.isEmpty else { return }
         if let record = fetchOne(OwnActionRecord.self, #Predicate { $0.name == trimmed }) {
             record.useCount += 1
-            record.lastUsedAt = date
+            record.lastUsedAt = EbbDates.rounded(date)
         } else {
-            context.insert(OwnActionRecord(name: trimmed, useCount: 1, lastUsedAt: date))
+            context.insert(OwnActionRecord(name: trimmed, useCount: 1, lastUsedAt: EbbDates.rounded(date)))
         }
         commit()
     }
