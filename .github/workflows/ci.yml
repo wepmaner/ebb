@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: EbbCore tests (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift test
+        run: swift test --package-path Packages/EbbCore
+
+  app:
+    name: App unit tests (macOS)
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        run: |
+          ls -d /Applications/Xcode*.app
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1 || true)
+          if [ -n "$XC" ]; then sudo xcode-select -s "$XC"; fi
+          xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Unit tests on simulator
+        run: |
+          set -o pipefail
+          DEST="id=$(scripts/pick-simulator.sh)"
+          echo "destination: $DEST"
+          xcodebuild test \
+            -scheme Ebb \
+            -destination "$DEST" \
+            -only-testing:EbbTests \
+            -resultBundlePath build/unit.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
+            | tail -n 200
+      - name: Upload result bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-xcresult
+          path: build/unit.xcresult
