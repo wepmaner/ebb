@@ -10,7 +10,7 @@ public enum EntryLifecycle {
         entries.map { entry in
             guard entry.isOpen, now.timeIntervalSince(entry.createdAt) >= autoCloseInterval else { return entry }
             var closed = entry
-            closed.closedAt = now
+            closed.closedAt = EbbDates.rounded(now)
             return closed
         }
     }

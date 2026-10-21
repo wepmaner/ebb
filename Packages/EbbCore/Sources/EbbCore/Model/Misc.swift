@@ -38,7 +38,7 @@ public struct OwnAction: Codable, Hashable, Sendable {
     public init(name: String, useCount: Int = 1, lastUsedAt: Date = Date()) {
         self.name = name
         self.useCount = useCount
-        self.lastUsedAt = lastUsedAt
+        self.lastUsedAt = EbbDates.rounded(lastUsedAt)
     }
 }
 
@@ -55,7 +55,7 @@ public struct LadderStep: Codable, Hashable, Identifiable, Sendable {
         self.title = title
         self.note = note
         self.order = order
-        self.completions = completions
+        self.completions = completions.map(EbbDates.rounded)
     }
 }
 
@@ -76,8 +76,8 @@ public struct DeferredThought: Codable, Hashable, Identifiable, Sendable {
         self.id = id
         self.entryID = entryID
         self.text = text
-        self.deferredAt = deferredAt
-        self.resolvedAt = resolvedAt
+        self.deferredAt = EbbDates.rounded(deferredAt)
+        self.resolvedAt = resolvedAt.map(EbbDates.rounded)
         self.resolution = resolution
     }
 }

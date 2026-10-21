@@ -46,8 +46,8 @@ public struct PracticeSession: Codable, Hashable, Identifiable, Sendable {
         self.id = id
         self.entryID = entryID
         self.kind = kind
-        self.startedAt = startedAt
-        self.endedAt = endedAt
+        self.startedAt = EbbDates.rounded(startedAt)
+        self.endedAt = EbbDates.rounded(endedAt)
         self.details = details
     }
 

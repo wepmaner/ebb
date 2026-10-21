@@ -16,8 +16,8 @@ public struct FearCheck: Codable, Hashable, Identifiable, Sendable {
         self.id = id
         self.entryID = entryID
         self.stage = stage
-        self.dueAt = dueAt
-        self.answeredAt = answeredAt
+        self.dueAt = EbbDates.rounded(dueAt)
+        self.answeredAt = answeredAt.map(EbbDates.rounded)
         self.outcome = outcome
     }
 

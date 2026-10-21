@@ -87,14 +87,14 @@ final class RecordFlowModel: Identifiable {
 
     func justRecord() {
         draft.coping = .justRecord
-        draft.closedAt = now()
+        draft.closedAt = EbbDates.rounded(now())
         persistDraft()
         isFinished = true
     }
 
     func deferThought() {
         draft.coping = .practice(.deferThought)
-        draft.closedAt = now()
+        draft.closedAt = EbbDates.rounded(now())
         persistDraft()
         let text = draft.thought ?? draft.fear ?? ""
         store.add(DeferredThought(entryID: draft.id, text: text, deferredAt: now()))
@@ -111,11 +111,11 @@ final class RecordFlowModel: Identifiable {
 
     func setAfter(_ level: AnxietyLevel) {
         draft.levelAfter = level
-        draft.afterAt = now()
+        draft.afterAt = EbbDates.rounded(now())
     }
 
     func finish() {
-        if draft.levelAfter == nil { draft.closedAt = now() }
+        if draft.levelAfter == nil { draft.closedAt = EbbDates.rounded(now()) }
         persistDraft()
         isFinished = true
     }

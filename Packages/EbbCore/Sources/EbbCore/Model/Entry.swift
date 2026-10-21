@@ -41,15 +41,15 @@ public struct Entry: Codable, Hashable, Identifiable, Sendable {
         closedAt: Date? = nil
     ) {
         self.id = id
-        self.createdAt = createdAt
+        self.createdAt = EbbDates.rounded(createdAt)
         self.levelBefore = levelBefore
         self.thought = thought
         self.trigger = trigger
         self.fear = fear
         self.coping = coping
         self.levelAfter = levelAfter
-        self.afterAt = afterAt
-        self.closedAt = closedAt
+        self.afterAt = afterAt.map(EbbDates.rounded)
+        self.closedAt = closedAt.map(EbbDates.rounded)
     }
 
     /// Открыта: своё действие без замера «после» и без автозакрытия.

@@ -31,3 +31,14 @@ import Testing
 @Test func codecRejectsUnsupportedVersion() {
     #expect(throws: SnapshotError.unsupportedVersion(99)) { try SnapshotCodec.decode(Data("{\"schemaVersion\":99}".utf8)) }
 }
+
+@Test func modelInitsRoundDatesToMilliseconds() {
+    let raw = Date(timeIntervalSince1970: 1_800_000_000.123_456_7)
+    let expected = Date(timeIntervalSince1970: 1_800_000_000.123)
+    #expect(Entry(createdAt: raw, levelBefore: .init(clamping: 1), afterAt: raw).afterAt == expected)
+    #expect(FearCheck(entryID: UUID(), stage: .day3, dueAt: raw).dueAt == expected)
+    #expect(PracticeSession(kind: .breathing, startedAt: raw, endedAt: raw, details: .deferred(thoughtID: UUID())).endedAt == expected)
+    #expect(OwnAction(name: "x", lastUsedAt: raw).lastUsedAt == expected)
+    #expect(DeferredThought(text: "t", deferredAt: raw).deferredAt == expected)
+    #expect(LadderStep(title: "s", order: 0, completions: [raw]).completions == [expected])
+}

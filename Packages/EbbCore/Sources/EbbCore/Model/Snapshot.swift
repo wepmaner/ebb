@@ -26,7 +26,7 @@ public struct Snapshot: Codable, Hashable, Sendable {
         settings: UserSettings = .defaults
     ) {
         self.schemaVersion = schemaVersion
-        self.exportedAt = exportedAt
+        self.exportedAt = EbbDates.rounded(exportedAt)
         self.entries = entries
         self.sessions = sessions
         self.fearChecks = fearChecks
