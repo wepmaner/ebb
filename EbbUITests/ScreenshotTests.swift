@@ -72,6 +72,41 @@ final class ScreenshotTests: XCTestCase {
         app.buttons["practice.breathing"].tap()
         settle()
         snap(app, "practices-breathing-setup-\(style)")
+        app.buttons["Закрыть"].firstMatch.tap()
+        settle()
+
+        // Дневник → детали первой записи
+        app.tabBars.buttons["Дневник"].tap()
+        settle()
+        let firstRow = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] '·'")).firstMatch
+        if firstRow.waitForExistence(timeout: 3) {
+            firstRow.tap()
+            settle()
+            snap(app, "entry-detail-\(style)")
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+            settle()
+        }
+
+        // Настройки
+        app.tabBars.buttons["Сейчас"].tap()
+        settle()
+        app.buttons["Настройки"].tap()
+        settle()
+        snap(app, "settings-\(style)")
+        app.buttons["Готово"].firstMatch.tap()
+        settle()
+    }
+
+    func testOnboardingDark() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--demo-data", "--ui-style", "dark", "--onboarding"]
+        app.launch()
+        XCTAssertTrue(app.buttons["onboarding.fresh"].waitForExistence(timeout: 15))
+        settle()
+        snap(app, "onboarding-dark")
+        app.buttons["onboarding.fresh"].tap()
+        settle()
+        XCTAssertTrue(app.tabBars.buttons["Сейчас"].waitForExistence(timeout: 10))
     }
 
     static let tabs: [(label: String, name: String)] = [

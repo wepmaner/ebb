@@ -5,7 +5,7 @@ import Foundation
 @Observable
 @MainActor
 final class RecordFlowModel: Identifiable {
-    enum Step: Equatable {
+    enum Step: Hashable {
         case level, suggest, practice(PracticeKind), after
     }
 

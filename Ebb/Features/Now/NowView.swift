@@ -4,6 +4,7 @@ import SwiftUI
 /// Точка входа: запись, открытые записи, вопросы оглядки, план на сегодня.
 struct NowView: View {
     @Environment(Store.self) private var store
+    @Environment(BackupService.self) private var backup
     @Environment(\.colorScheme) private var scheme
     @State private var flow: RecordFlowModel?
     @State private var showSettings = false
@@ -15,6 +16,9 @@ struct NowView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     header
                     recordCard
+                    if backup.isEnabled, backup.folderURL == nil || backup.isStale {
+                        backupCard
+                    }
                     ForEach(openEntries) { entry in
                         OpenEntryCard(entry: entry) { flow = RecordFlowModel(store: store, resuming: entry) }
                     }
@@ -89,6 +93,22 @@ struct NowView: View {
                 .accessibilityIdentifier("now.record")
         }
         .glassCard()
+    }
+
+    private var backupCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionLabel("Резервная копия")
+            Text(backup.folderURL == nil
+                 ? "Папка для копии ещё не выбрана. Без неё записи не переживут переустановку."
+                 : "Копия не обновлялась с \(backup.lastBackupAt?.ebbShortDate ?? "момента выбора папки").")
+                .font(.system(size: 16))
+                .lineSpacing(2)
+                .foregroundStyle(Theme.text(scheme))
+            Button(backup.folderURL == nil ? "Выбрать папку" : "Открыть настройки") { showSettings = true }
+                .buttonStyle(.ebbPill)
+                .foregroundStyle(Theme.text(scheme))
+        }
+        .glassCard(padding: 18)
     }
 
     private var todayCard: some View {
